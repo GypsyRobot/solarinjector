@@ -1,0 +1,492 @@
+[
+  {
+    "Sourcefile": null,
+    "Include": "",
+    "Includepath": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/cores/esp32"
+  },
+  {
+    "Sourcefile": null,
+    "Include": "",
+    "Includepath": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/variants/heltec_wifi_lora_32_V3"
+  },
+  {
+    "Sourcefile": "/home/everton/sunfactory/build/sketch/sunfactory.ino.cpp",
+    "Include": "heltec_unofficial.h",
+    "Includepath": "/home/everton/Arduino/libraries/Heltec_ESP32_LoRa_v3/src"
+  },
+  {
+    "Sourcefile": "/home/everton/sunfactory/build/sketch/sunfactory.ino.cpp",
+    "Include": "RadioLib.h",
+    "Includepath": "/home/everton/Arduino/libraries/RadioLib/src"
+  },
+  {
+    "Sourcefile": "/home/everton/sunfactory/build/sketch/sunfactory.ino.cpp",
+    "Include": "SPI.h",
+    "Includepath": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/SPI/src"
+  },
+  {
+    "Sourcefile": "/home/everton/sunfactory/build/sketch/sunfactory.ino.cpp",
+    "Include": "SSD1306Wire.h",
+    "Includepath": "/home/everton/Arduino/libraries/ESP8266_and_ESP32_OLED_driver_for_SSD1306_displays/src"
+  },
+  {
+    "Sourcefile": "/home/everton/sunfactory/build/sketch/sunfactory.ino.cpp",
+    "Include": "Wire.h",
+    "Includepath": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/Wire/src"
+  },
+  {
+    "Sourcefile": "/home/everton/sunfactory/build/sketch/sunfactory.ino.cpp",
+    "Include": "HotButton.h",
+    "Includepath": "/home/everton/Arduino/libraries/HotButton/src"
+  },
+  {
+    "Sourcefile": "/home/everton/sunfactory/build/sketch/sunfactory.ino.cpp",
+    "Include": "SPIFFS.h",
+    "Includepath": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/SPIFFS/src"
+  },
+  {
+    "Sourcefile": "/home/everton/sunfactory/build/sketch/sunfactory.ino.cpp",
+    "Include": "FS.h",
+    "Includepath": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/FS/src"
+  },
+  {
+    "Sourcefile": "/home/everton/sunfactory/build/sketch/sunfactory.ino.cpp",
+    "Include": "WebServer.h",
+    "Includepath": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/WebServer/src"
+  },
+  {
+    "Sourcefile": "/home/everton/sunfactory/build/sketch/sunfactory.ino.cpp",
+    "Include": "Network.h",
+    "Includepath": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/Network/src"
+  },
+  {
+    "Sourcefile": "/home/everton/sunfactory/build/sketch/sunfactory.ino.cpp",
+    "Include": "WiFi.h",
+    "Includepath": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/WiFi/src"
+  },
+  {
+    "Sourcefile": "/home/everton/sunfactory/build/sketch/sunfactory.ino.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/Heltec_ESP32_LoRa_v3/src/RadioLib_convenience.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/Hal.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/Module.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/hal/Arduino/ArduinoHal.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/CC1101/CC1101.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/LLCC68/LLCC68.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/LR11x0/LR1110.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/LR11x0/LR1120.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/LR11x0/LR1121.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/LR11x0/LR11x0.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/RF69/RF69.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX123x/SX1231.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX123x/SX1233.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX126x/STM32WLx.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX126x/STM32WLx_Module.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX126x/SX1261.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX126x/SX1262.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX126x/SX1268.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX126x/SX126x.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX126x/SX126x_LR_FHSS.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX127x/SX1272.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX127x/SX1273.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX127x/SX1276.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX127x/SX1277.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX127x/SX1278.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX127x/SX1279.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX127x/SX127x.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX128x/SX1280.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX128x/SX1281.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX128x/SX1282.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/SX128x/SX128x.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/Si443x/Si4430.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/Si443x/Si4431.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/Si443x/Si4432.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/Si443x/Si443x.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/modules/nRF24/nRF24.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/protocols/AFSK/AFSK.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/protocols/APRS/APRS.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/protocols/AX25/AX25.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/protocols/BellModem/BellModem.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/protocols/ExternalRadio/ExternalRadio.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/protocols/FSK4/FSK4.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/protocols/Hellschreiber/Hellschreiber.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/protocols/LoRaWAN/LoRaWAN.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/protocols/LoRaWAN/LoRaWANBands.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/protocols/Morse/Morse.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/protocols/Pager/Pager.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/protocols/PhysicalLayer/PhysicalLayer.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/protocols/Print/ITA2String.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/protocols/Print/Print.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/protocols/RTTY/RTTY.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/protocols/SSTV/SSTV.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/utils/CRC.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/utils/Cryptography.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/utils/FEC.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/RadioLib/src/utils/Utils.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/SPI/src/SPI.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/ESP8266_and_ESP32_OLED_driver_for_SSD1306_displays/src/OLEDDisplay.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/Arduino/libraries/ESP8266_and_ESP32_OLED_driver_for_SSD1306_displays/src/OLEDDisplayUi.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/Wire/src/Wire.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/SPIFFS/src/SPIFFS.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/FS/src/FS.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/FS/src/vfs_api.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/WebServer/src/Parsing.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/WebServer/src/WebServer.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/WebServer/src/detail/mimetable.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/WebServer/src/middleware/AuthenticationMiddleware.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/WebServer/src/middleware/CorsMiddleware.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/WebServer/src/middleware/LoggingMiddleware.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/WebServer/src/middleware/MiddlewareChain.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/Network/src/NetworkClient.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/Network/src/NetworkEvents.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/Network/src/NetworkInterface.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/Network/src/NetworkManager.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/Network/src/NetworkServer.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/Network/src/NetworkUdp.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/WiFi/src/AP.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/WiFi/src/STA.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/WiFi/src/WiFi.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/WiFi/src/WiFiAP.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/WiFi/src/WiFiGeneric.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/WiFi/src/WiFiMulti.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/WiFi/src/WiFiSTA.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/home/everton/.arduino15/packages/esp32/hardware/esp32/3.1.3/libraries/WiFi/src/WiFiScan.cpp",
+    "Include": "",
+    "Includepath": null
+  }
+]

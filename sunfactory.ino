@@ -1,13 +1,28 @@
 // Turns the 'PRG' button into the power button, long press is off
 #define HELTEC_POWER_BUTTON // must be before "#include <heltec_unofficial.h>"
 
-// creates 'radio', 'display' and 'button' instances
 #include <heltec_unofficial.h>
-#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
-#include <EEPROM.h>
+#include <SPIFFS.h>
+#include <WebServer.h>
+#include <WiFi.h>
+#include <time.h>
+// #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 
+#define LOG_INTERVAL_MS 60000 // 60000 milliseconds = 1 minute
+#define WIFI_TIMEOUT_MS 10000 // 10000 milliseconds = 10 seconds
+
+// For wifi connection
 #define WIFI_SSID "sunfactory"
 #define WIFI_PASS "sunfactory"
+
+const char *filename = "/data.csv"; // File path in SPIFFS
+
+WebServer server(80); // Create a web server on port 80
+
+// NTP server settings
+const char *ntpServer = "pool.ntp.org";
+const long gmtOffset_sec = 0;     // Adjust this according to your timezone
+const int daylightOffset_sec = 0; // Adjust this according to your day light saving time
 
 // Constants for the Thermistors
 #define THERMISTOR_PIN_A 7          // Analog pin where the voltage divider is connected for Thermistor A
@@ -30,6 +45,8 @@ float targetTemperatures[] = {210, 240, 180, 15};
 int targetIndex = 0;
 float targetTemperature = targetTemperatures[targetIndex];
 
+bool connected = false;
+
 void setup()
 {
   heltec_setup();
@@ -40,8 +57,33 @@ void setup()
 
   Serial.println("Serial works");
 
+  if (!SPIFFS.begin(true))
+  {
+    return;
+  }
+  delay(1000);
+
+  if (SPIFFS.exists(filename))
+  {
+    Serial.println("File exists");
+    // File file = SPIFFS.open(filename, FILE_APPEND);
+  }
+  else
+  {
+    Serial.println("File does not exist, creating new file with headers");
+    File file = SPIFFS.open(filename, FILE_WRITE);
+    delay(1000);
+    if (file)
+    {
+      file.println("Timestamp, Temperature A, Temperature B, Lux"); // CSV headers
+      file.close();
+    }
+  }
+  delay(1000);
+
   // Display
   display.println("Display works");
+
   // Radio
   display.print("Radio ");
   int state = radio.begin();
@@ -53,46 +95,15 @@ void setup()
   {
     display.printf("fail, code: %i\n", state);
   }
+
+  RADIOLIB_OR_HALT(radio.setFrequency(866.3));
+  heltec_delay(3000);
+  yield();
   // Battery
   float vbat = heltec_vbat();
   display.printf("Vbat: %.2fV (%d%%)\n", vbat, heltec_battery_percent(vbat));
 
-  RADIOLIB_OR_HALT(radio.setFrequency(866.3));
-  heltec_delay(3000);
-
-  // Initialize EEPROM with maximum available size
-  EEPROM.begin(EEPROM.length());
-
-  // Read and print saved temperatures and luminosity from EEPROM
-  float savedTemperatureA, savedTemperatureB, savedLux;
-  EEPROM.get(0, savedTemperatureA);
-  EEPROM.get(sizeof(float), savedTemperatureB);
-  EEPROM.get(2 * sizeof(float), savedLux);
-
-  Serial.println("Saved Data:");
-  Serial.println("Temp A: ");
-  Serial.print(savedTemperatureA);
-  Serial.println("Temp B: ");
-  Serial.print(savedTemperatureB);
-  Serial.println("Lux: ");
-  Serial.print(savedLux);
-
-  // Clear EEPROM
-  for (int i = 0; i < EEPROM.length(); i++)
-  {
-    EEPROM.write(i, 0);
-  }
-  EEPROM.commit(); // Commit changes to EEPROM
-  Serial.println("EEPROM cleared");
-
-  // Reinitialize EEPROM with maximum available size
-  EEPROM.begin(EEPROM.length());
-
-  WiFiManager wm;
-  // wm.setTimeout(30); // 30 secon
-  // wm.setAPStaticIPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
-  heltec_delay(3000);
-
+  yield();
   char buffer[64]; // Buffer to store formatted string
   display.clear();
   display.setFont(ArialMT_Plain_16);
@@ -103,26 +114,37 @@ void setup()
   display.display();
   heltec_delay(3000);
 
+  connected = handleWifi();
+
+  // WiFiManager wm;
+  // wm.setTimeout(30); // 30 secon
+  // wm.setAPStaticIPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
+  // // heltec_delay(3000);
+
   // // Try connecting to saved WiFi, or start AP for setup
-  // if (!wm.autoConnect(WIFI_SSID, WIFI_PASS))
+  // // if (!wm.autoConnect(WIFI_SSID, WIFI_PASS))
+  // if (!wm.autoConnect("AVALON", "H1dr0f0b14"))
   // {
-  //   Serial.println("Failed to connect and hit timeout");
   //   ESP.restart();
   // }
 
   // Serial.println("Connected to WiFi!");
   // Serial.println(WiFi.localIP());
-  // // display.drawStringf(4, 44, buffer, "IP: ");
-  // // display.drawStringf(50, 44, buffer, WiFi.localIP().toString().c_str());
-  // delay(1000); // Allow time for serial monitor to open
+  // display.drawStringf(4, 44, buffer, "IP: ");
+  // display.drawStringf(50, 44, buffer, WiFi.localIP().toString().c_str());
+
+  delay(1000); // Allow time for serial monitor to open
 }
 
 void loop()
 {
+  yield();
   heltec_loop();
+  yield();
 
   // Button
   targetTemperature = targetTemperatures[targetIndex];
+  yield();
 
   if (button.isSingleClick())
   {
@@ -142,6 +164,7 @@ void loop()
     // display.println("LED works");
   }
 
+  yield();
   float ldrValue = analogRead(LDR_PIN);
 
   // Convert to voltage
@@ -159,17 +182,7 @@ void loop()
 
   // Convert Resistance to Lux using the gamma formula
   float lux = 10.0 * pow((R10_LUX / ldrResistance), (1.0 / GAMMA));
-
-  // // Print values
-  // Serial.print("LDR Value: ");
-  // Serial.println(ldrValue);
-  // Serial.print("LDR Voltage: ");
-  // Serial.println(ldrVoltage);
-  // Serial.print("LDR Resistance: ");
-  // Serial.println(ldrResistance);
-  // Serial.print("Estimated Lux: ");
-  // Serial.println(lux);
-
+  yield();
   // Read and calculate temperature for Thermistor A
   int adcValueA = analogRead(THERMISTOR_PIN_A);
   float voltageA = (adcValueA / ADC_RESOLUTION) * SUPPLY_VOLTAGE;
@@ -215,6 +228,7 @@ void loop()
     display.drawStringf(2, 4, buffer, "A:%.0fC", thermistorTemperatureA);
   }
 
+  yield();
   // print temperature readings for sensor B
   display.setTextAlignment(TEXT_ALIGN_LEFT);
   display.setFont(ArialMT_Plain_24);
@@ -249,29 +263,143 @@ void loop()
     heltec_led(0);
   }
 
+  yield();
   display.display();
 
   static unsigned long lastSaveTime = 0;
   unsigned long currentTime = millis();
+  yield();
 
-  if (currentTime - lastSaveTime >= 1000) // 60000 milliseconds = 1 minute
+  if (currentTime - lastSaveTime >= LOG_INTERVAL_MS) // 60000 milliseconds = 1 minute
   {
     lastSaveTime = currentTime;
+    yield();
 
-    // Save thermistorTemperatureA
-    EEPROM.put(0, thermistorTemperatureA);
+    // Get current time from WiFi network
+    char timestamp[20];
+    // Generate a simple timestamp and dummy value
+    snprintf(timestamp, sizeof(timestamp), "%lu", millis() / 1000);
 
-    // Save thermistorTemperatureB
-    EEPROM.put(sizeof(float), thermistorTemperatureB);
+    if (connected)
+    {
+      time_t now;
+      struct tm timeinfo;
+      if (!getLocalTime(&timeinfo))
+      {
+        Serial.println("Failed to obtain time");
+      }
+      else
+      {
+        time(&now);
+        strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", &timeinfo);
+      }
+    }
 
-    // Save lux
-    EEPROM.put(2 * sizeof(float), lux);
+    Serial.println(timestamp);
 
-    EEPROM.commit(); // Commit changes to EEPROM
-    EEPROM.end();    // End EEPROM access
+    yield();
+    File file = SPIFFS.open(filename, FILE_APPEND);
+    yield();
 
-    Serial.println("Saved temperatures and luminosity to EEPROM");
+    if (!file)
+    {
+      return;
+    }
+
+    try
+    {
+      file.printf("%s, %d, %d, %d,\n", timestamp, (int)thermistorTemperatureA, (int)thermistorTemperatureB, (int)lux);
+    }
+    catch (const std::exception &e)
+    {
+      Serial.print("Error writing to file: ");
+      Serial.println(e.what());
+    }
+
+    file.close();
+    yield();
+  }
+  yield();
+
+  server.handleClient(); // Handle client requests
+  yield();
+
+  heltec_delay(1000);
+}
+
+bool handleWifi()
+{
+  // Connect to WiFi
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+
+  char buffer[64]; // Buffer to store formatted string
+  display.clear();
+  display.setFont(ArialMT_Plain_16);
+  display.drawString(0, 0, "WiFi Connecting...");
+  display.display();
+
+  unsigned long startAttemptTime = millis();
+
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    if (millis() - startAttemptTime >= WIFI_TIMEOUT_MS)
+    {
+      display.clear();
+      display.drawString(0, 0, "WiFi Failed");
+      display.display();
+
+      return false;
+    }
+    delay(500);
+    display.drawString(0, 16, ".");
+    display.display();
   }
 
-  heltec_delay(100);
+  display.clear();
+  display.drawString(0, 0, "WiFi Works");
+  display.drawStringf(0, 16, buffer, "IP: %s", WiFi.localIP().toString().c_str());
+  display.display();
+  Serial.println("Connected to WiFi!");
+  Serial.println(WiFi.localIP());
+  delay(5000);
+
+  // Start the server
+  server.on("/", HTTP_GET, handleRoot);             // Handle root request
+  server.on("/download", HTTP_GET, handleDownload); // Handle download request
+  yield();
+  server.begin();
+
+  // Initialize NTP
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+
+  return true;
+}
+
+// Function to append data to the CSV file
+void addData()
+{
+}
+
+// Handle the root URL
+void handleRoot()
+{
+  String html = "<html><body><h1>Sunfactory Temperature Log:</h1>";
+  html += "<p><a href='/download'>Download CSV</a></p>";
+  html += "</body></html>";
+  server.send(200, "text/html", html);
+}
+
+// Handle the download URL
+void handleDownload()
+{
+  File file = SPIFFS.open(filename, FILE_READ);
+  if (!file)
+  {
+    server.send(500, "text/plain", "Failed to open file for reading");
+    return;
+  }
+
+  // Send the file content as a downloadable file
+  server.streamFile(file, "text/csv");
+  file.close();
 }
