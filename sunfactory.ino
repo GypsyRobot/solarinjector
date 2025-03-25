@@ -11,7 +11,6 @@
 #define LOG_INTERVAL_MS 60000 // 60000 milliseconds = 1 minute
 #define WIFI_TIMEOUT_MS 10000 // 10000 milliseconds = 10 seconds
 
-// For wifi connection
 #define WIFI_SSID "sunfactory"
 #define WIFI_PASS "sunfactory"
 
@@ -41,7 +40,7 @@ const int daylightOffset_sec = 0; // Adjust this according to your day light sav
 
 #define BUZZER_PIN 4 // Buzzer
 
-float targetTemperatures[] = {210, 240, 180, 15};
+float targetTemperatures[] = {180, 200, 210, 220, 250, 25, 70, 90, 100};
 int targetIndex = 0;
 float targetTemperature = targetTemperatures[targetIndex];
 
@@ -107,31 +106,14 @@ void setup()
   char buffer[64]; // Buffer to store formatted string
   display.clear();
   display.setFont(ArialMT_Plain_16);
-  display.drawStringf(4, 4, buffer, "ssid: ");
+  display.drawStringf(4, 4, buffer, "");
   display.drawStringf(50, 4, buffer, WIFI_SSID);
-  display.drawStringf(4, 24, buffer, "pass: ");
+  display.drawStringf(4, 24, buffer, "");
   display.drawStringf(50, 24, buffer, WIFI_PASS);
   display.display();
-  heltec_delay(3000);
+  heltec_delay(5000);
 
   connected = handleWifi();
-
-  // WiFiManager wm;
-  // wm.setTimeout(30); // 30 secon
-  // wm.setAPStaticIPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
-  // // heltec_delay(3000);
-
-  // // Try connecting to saved WiFi, or start AP for setup
-  // // if (!wm.autoConnect(WIFI_SSID, WIFI_PASS))
-  // if (!wm.autoConnect("AVALON", "H1dr0f0b14"))
-  // {
-  //   ESP.restart();
-  // }
-
-  // Serial.println("Connected to WiFi!");
-  // Serial.println(WiFi.localIP());
-  // display.drawStringf(4, 44, buffer, "IP: ");
-  // display.drawStringf(50, 44, buffer, WiFi.localIP().toString().c_str());
 
   delay(1000); // Allow time for serial monitor to open
 }
@@ -324,11 +306,29 @@ void loop()
   server.handleClient(); // Handle client requests
   yield();
 
-  heltec_delay(1000);
+  heltec_delay(100);
 }
 
 bool handleWifi()
 {
+
+  // WiFiManager wm;
+  // wm.setTimeout(30); // 30 secon
+  // wm.setAPStaticIPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
+  // // heltec_delay(3000);
+
+  // // Try connecting to saved WiFi, or start AP for setup
+  // // if (!wm.autoConnect(WIFI_SSID, WIFI_PASS))
+  // if (!wm.autoConnect("AVALON", "H1dr0f0b14"))
+  // {
+  //   ESP.restart();
+  // }
+
+  // Serial.println("Connected to WiFi!");
+  // Serial.println(WiFi.localIP());
+  // display.drawStringf(4, 44, buffer, "IP: ");
+  // display.drawStringf(50, 44, buffer, WiFi.localIP().toString().c_str());
+
   // Connect to WiFi
   WiFi.begin(WIFI_SSID, WIFI_PASS);
 
@@ -373,11 +373,6 @@ bool handleWifi()
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 
   return true;
-}
-
-// Function to append data to the CSV file
-void addData()
-{
 }
 
 // Handle the root URL
