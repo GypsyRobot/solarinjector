@@ -10,7 +10,7 @@
 #include <time.h>
 // #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 
-#define LOG_INTERVAL_MS 1000 // 60000 milliseconds = 1 minute
+#define LOG_INTERVAL_MS 60000 // 60000 milliseconds = 1 minute
 
 // For wifi connection
 #define WIFI_TIMEOUT_MS 10000 // 10000 milliseconds = 10 seconds
@@ -62,25 +62,27 @@ char timestamp[20];
 
 bool enableBeep = true;
 
-#line 63 "/home/everton/sunfactory/sunfactory.ino"
+unsigned long lastSaveTime = 0;
+
+#line 65 "/home/everton/sunfactory/sunfactory.ino"
 void setup();
-#line 135 "/home/everton/sunfactory/sunfactory.ino"
+#line 137 "/home/everton/sunfactory/sunfactory.ino"
 void loop();
-#line 366 "/home/everton/sunfactory/sunfactory.ino"
+#line 367 "/home/everton/sunfactory/sunfactory.ino"
 bool handleWifi();
-#line 437 "/home/everton/sunfactory/sunfactory.ino"
+#line 438 "/home/everton/sunfactory/sunfactory.ino"
 void handleRoot();
-#line 470 "/home/everton/sunfactory/sunfactory.ino"
+#line 471 "/home/everton/sunfactory/sunfactory.ino"
 void handleDownload();
-#line 485 "/home/everton/sunfactory/sunfactory.ino"
+#line 486 "/home/everton/sunfactory/sunfactory.ino"
 void handleGetValues();
-#line 497 "/home/everton/sunfactory/sunfactory.ino"
+#line 498 "/home/everton/sunfactory/sunfactory.ino"
 void handleWipeFile();
-#line 516 "/home/everton/sunfactory/sunfactory.ino"
+#line 517 "/home/everton/sunfactory/sunfactory.ino"
 void handleEnableBeep();
-#line 523 "/home/everton/sunfactory/sunfactory.ino"
+#line 524 "/home/everton/sunfactory/sunfactory.ino"
 void handleDisableBeep();
-#line 63 "/home/everton/sunfactory/sunfactory.ino"
+#line 65 "/home/everton/sunfactory/sunfactory.ino"
 void setup()
 {
   heltec_setup();
@@ -311,11 +313,10 @@ void loop()
   yield();
   display.display();
 
-  static unsigned long lastSaveTime = 0;
   unsigned long currentTime = millis();
   yield();
 
-  if (currentTime - lastSaveTime >= LOG_INTERVAL_MS) // 60000 milliseconds = 1 minute
+  if ((currentTime - lastSaveTime >= LOG_INTERVAL_MS) || lastSaveTime == 0) // 60000 milliseconds = 1 minute
   {
     lastSaveTime = currentTime;
     yield();
@@ -364,8 +365,8 @@ void loop()
 
     availableMemory = SPIFFS.totalBytes() - SPIFFS.usedBytes();
     availablePercentage = (float)availableMemory / SPIFFS.totalBytes() * 100;
-    Serial.printf("File size: %d bytes\n", (int)fileSize);
-    Serial.printf("Available memory: %d bytes (%.2f%%)\n", availableMemory, availablePercentage);
+    Serial.printf("File size: %.2f Kbytes\n", (int)fileSize / 1024);
+    Serial.printf("Available memory: %.2f Kbytes (%.2f%%)\n", availableMemory / 1024, availablePercentage);
 
     yield();
   }
@@ -470,8 +471,8 @@ void handleRoot()
     html += "<tr><td>" + String(timestamp) + " </td><td>" + String((int)thermistorTemperatureA) + " C</td><td>" + String((int)thermistorTemperatureB) + " C</td><td>" + String((int)lux) + " lm</td></tr>";
   }
   html += "</table><p><a href='/download'>Download LOG</a></p>";
-  html += "<p>File size: " + String(fileSize) + " bytes</p>";
-  html += "<p>Available memory: " + String(availableMemory) + " bytes (" + String(availablePercentage, 2) + "%)</p>";
+  html += "<p>File size: " + String(fileSize / 1024) + " Kbytes</p>";
+  html += "<p>Available memory: " + String(availableMemory / 1024) + " Kbytes (" + String(availablePercentage, 2) + "%)</p>";
   html += "<p>Beep " + String(enableBeep ? "Enabled" : "Disabled") + "</p>";
   if (!enableBeep)
   {

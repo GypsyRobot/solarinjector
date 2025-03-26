@@ -53,6 +53,8 @@ char timestamp[20];
 
 bool enableBeep = true;
 
+unsigned long lastSaveTime = 0;
+
 void setup()
 {
   heltec_setup();
@@ -283,11 +285,10 @@ void loop()
   yield();
   display.display();
 
-  static unsigned long lastSaveTime = 0;
   unsigned long currentTime = millis();
   yield();
 
-  if (currentTime - lastSaveTime >= 1000 /* 60000 milliseconds = 1 minute*/) // 60000 milliseconds = 1 minute
+  if ((currentTime - lastSaveTime >= 60000 /* 60000 milliseconds = 1 minute*/) || lastSaveTime == 0) // 60000 milliseconds = 1 minute
   {
     lastSaveTime = currentTime;
     yield();
@@ -336,8 +337,8 @@ void loop()
 
     availableMemory = SPIFFS.totalBytes() - SPIFFS.usedBytes();
     availablePercentage = (float)availableMemory / SPIFFS.totalBytes() * 100;
-    Serial0.printf("File size: %d bytes\n", (int)fileSize);
-    Serial0.printf("Available memory: %d bytes (%.2f%%)\n", availableMemory, availablePercentage);
+    Serial0.printf("File size: %.2f Kbytes\n", (int)fileSize / 1024);
+    Serial0.printf("Available memory: %.2f Kbytes (%.2f%%)\n", availableMemory / 1024, availablePercentage);
 
     yield();
   }
@@ -442,8 +443,8 @@ void handleRoot()
     html += "<tr><td>" + String(timestamp) + " </td><td>" + String((int)thermistorTemperatureA) + " C</td><td>" + String((int)thermistorTemperatureB) + " C</td><td>" + String((int)lux) + " lm</td></tr>";
   }
   html += "</table><p><a href='/download'>Download LOG</a></p>";
-  html += "<p>File size: " + String(fileSize) + " bytes</p>";
-  html += "<p>Available memory: " + String(availableMemory) + " bytes (" + String(availablePercentage, 2) + "%)</p>";
+  html += "<p>File size: " + String(fileSize / 1024) + " Kbytes</p>";
+  html += "<p>Available memory: " + String(availableMemory / 1024) + " Kbytes (" + String(availablePercentage, 2) + "%)</p>";
   html += "<p>Beep " + String(enableBeep ? "Enabled" : "Disabled") + "</p>";
   if (!enableBeep)
   {
