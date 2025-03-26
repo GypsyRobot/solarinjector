@@ -42,6 +42,11 @@ float targetTemperature = targetTemperatures[targetIndex];
 
 bool connected = false;
 
+float thermistorTemperatureA = 0;
+float thermistorTemperatureB = 0;
+float lux = 0;
+char timestamp[20];
+
 void setup()
 {
   heltec_setup();
@@ -103,9 +108,9 @@ void setup()
   display.clear();
   display.setFont(ArialMT_Plain_16);
   display.drawStringf(4, 4, buffer, "");
-  display.drawStringf(50, 4, buffer, "TP-Link_6178");
+  display.drawStringf(4, 4, buffer, "TP-Link_6178");
   display.drawStringf(4, 24, buffer, "");
-  display.drawStringf(50, 24, buffer, "39511836");
+  display.drawStringf(4, 24, buffer, "39511836");
   display.display();
   heltec_delay(5000);
 
@@ -159,13 +164,13 @@ void loop()
   float ldrResistance = (3.3 /* ESP8266 supply voltage*/ / ldrVoltage - 1) * 10000.0 /* 10k resistor value (in ohms)*/;
 
   // Convert Resistance to Lux using the gamma formula
-  float lux = 10.0 * pow((8000.0 /* Resistance at 10 Lux (8kΩ - lower bound)*/ / ldrResistance), (1.0 / 0.7 /* Gamma value from datasheet*/));
+  lux = 10.0 * pow((8000.0 /* Resistance at 10 Lux (8kΩ - lower bound)*/ / ldrResistance), (1.0 / 0.7 /* Gamma value from datasheet*/));
   yield();
   // Read and calculate temperature for Thermistor A
   int adcValueA = analogRead(7 /* Analog pin where the voltage divider is connected for Thermistor A*/);
   float voltageA = (adcValueA / 4095.0 /* 12-bit ADC on ESP8266*/) * 3.3 /* ESP8266 supply voltage*/;
   float resistanceA = 10000.0 /* 10k resistor value (in ohms)*/ * ((3.3 /* ESP8266 supply voltage*/ / voltageA) - 1);
-  float thermistorTemperatureA = resistanceA / 100000.0 /* 100k thermistor at 25C*/; // (R/Ro)
+  thermistorTemperatureA = resistanceA / 100000.0 /* 100k thermistor at 25C*/; // (R/Ro)
   thermistorTemperatureA = log(thermistorTemperatureA); // ln(R/Ro)
   thermistorTemperatureA /= 3950.0 /* Beta coefficient of thermistor*/; // 1/B * ln(R/Ro)
   thermistorTemperatureA += 1.0 / (25.0 /* 25°C*/ + 273.15); // + (1/To)
@@ -176,7 +181,7 @@ void loop()
   int adcValueB = analogRead(6 /* Analog pin where the voltage divider is connected for Thermistor B*/);
   float voltageB = (adcValueB / 4095.0 /* 12-bit ADC on ESP8266*/) * 3.3 /* ESP8266 supply voltage*/;
   float resistanceB = 10000.0 /* 10k resistor value (in ohms)*/ * ((3.3 /* ESP8266 supply voltage*/ / voltageB) - 1);
-  float thermistorTemperatureB = resistanceB / 100000.0 /* 100k thermistor at 25C*/; // (R/Ro)
+  thermistorTemperatureB = resistanceB / 100000.0 /* 100k thermistor at 25C*/; // (R/Ro)
   thermistorTemperatureB = log(thermistorTemperatureB); // ln(R/Ro)
   thermistorTemperatureB /= 3950.0 /* Beta coefficient of thermistor*/; // 1/B * ln(R/Ro)
   thermistorTemperatureB += 1.0 / (25.0 /* 25°C*/ + 273.15); // + (1/To)
@@ -254,7 +259,6 @@ void loop()
     yield();
 
     // Get current time from WiFi network
-    char timestamp[20];
     // Generate a simple timestamp and dummy value
     snprintf(timestamp, sizeof(timestamp), "%lu", millis() / 1000);
 
@@ -362,6 +366,7 @@ bool handleWifi()
   // Start the server
   server.on("/", HTTP_GET, handleRoot); // Handle root request
   server.on("/download", HTTP_GET, handleDownload); // Handle download request
+  server.on("/raw", HTTP_GET, handleGetValues); // Handle getValues request
   yield();
   server.begin();
 
@@ -374,9 +379,19 @@ bool handleWifi()
 // Handle the root URL
 void handleRoot()
 {
-  String html = "<html><body><h1>Sunfactory Temperature Log:</h1>";
-  html += "<p><a href='/download'>Download CSV</a></p>";
-  html += "</body></html>";
+  String html = "<html><head><meta http-equiv='refresh' content='" + String(60000 /* 60000 milliseconds = 1 minute*/) + "'></head>"
+                                                                                               "<body style='background-color:#ffcc00; text-align:center;font-family:Arial;'><h1>SUNFACTORY</h1>"
+                                                                                               "<table border='1' style='margin-left:auto; margin-right:auto;'>"
+                                                                                               "<tr><th>Timestamp</th><th>Temperature A</th><th>Temperature B</th><th>Lux</th></tr>";
+  if (timestamp == nullptr || strlen(timestamp) == 0)
+  {
+    html += "<tr><td>wait bro (:</td><td>" + String(thermistorTemperatureA) + " C</td><td>" + String(thermistorTemperatureB) + " C</td><td>" + String(lux) + " lm</td></tr>";
+  }
+  else
+  {
+    html += "<tr><td>" + String(timestamp) + " </td><td>" + String(thermistorTemperatureA) + " C</td><td>" + String(thermistorTemperatureB) + " C</td><td>" + String(lux) + " lm</td></tr>";
+  }
+  html += "</table><p><a href='/download'>Download CSV</a></p></body></html>";
   server.send(200, "text/html", html);
 }
 
@@ -393,4 +408,17 @@ void handleDownload()
   // Send the file content as a downloadable file
   server.streamFile(file, "text/csv");
   file.close();
+}
+
+// Handle the getValues URL
+void handleGetValues()
+{
+  String json = "{";
+  json += "\"timestamp\":\"" + String(timestamp) + "\",";
+  json += "\"temperatureA\":" + String((int)thermistorTemperatureA) + ",";
+  json += "\"temperatureB\":" + String((int)thermistorTemperatureB) + ",";
+  json += "\"lux\":" + String((int)lux);
+  json += "}";
+
+  server.send(200, "application/json", json);
 }

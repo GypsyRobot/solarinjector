@@ -11,6 +11,8 @@
 #define LOG_INTERVAL_MS 60000 // 60000 milliseconds = 1 minute
 #define WIFI_TIMEOUT_MS 10000 // 10000 milliseconds = 10 seconds
 
+// For wifi connection
+
 #define WIFI_SSID "sunfactory"
 #define WIFI_PASS "sunfactory"
 
@@ -45,6 +47,11 @@ int targetIndex = 0;
 float targetTemperature = targetTemperatures[targetIndex];
 
 bool connected = false;
+
+float thermistorTemperatureA = 0;
+float thermistorTemperatureB = 0;
+float lux = 0;
+char timestamp[20];
 
 void setup()
 {
@@ -107,9 +114,9 @@ void setup()
   display.clear();
   display.setFont(ArialMT_Plain_16);
   display.drawStringf(4, 4, buffer, "");
-  display.drawStringf(50, 4, buffer, WIFI_SSID);
+  display.drawStringf(4, 4, buffer, WIFI_SSID);
   display.drawStringf(4, 24, buffer, "");
-  display.drawStringf(50, 24, buffer, WIFI_PASS);
+  display.drawStringf(4, 24, buffer, WIFI_PASS);
   display.display();
   heltec_delay(5000);
 
@@ -163,28 +170,28 @@ void loop()
   float ldrResistance = (SUPPLY_VOLTAGE / ldrVoltage - 1) * SERIES_RESISTOR;
 
   // Convert Resistance to Lux using the gamma formula
-  float lux = 10.0 * pow((R10_LUX / ldrResistance), (1.0 / GAMMA));
+  lux = 10.0 * pow((R10_LUX / ldrResistance), (1.0 / GAMMA));
   yield();
   // Read and calculate temperature for Thermistor A
   int adcValueA = analogRead(THERMISTOR_PIN_A);
   float voltageA = (adcValueA / ADC_RESOLUTION) * SUPPLY_VOLTAGE;
   float resistanceA = SERIES_RESISTOR * ((SUPPLY_VOLTAGE / voltageA) - 1);
-  float thermistorTemperatureA = resistanceA / NOMINAL_RESISTANCE; // (R/Ro)
-  thermistorTemperatureA = log(thermistorTemperatureA);            // ln(R/Ro)
-  thermistorTemperatureA /= B_COEFFICIENT;                         // 1/B * ln(R/Ro)
-  thermistorTemperatureA += 1.0 / (NOMINAL_TEMPERATURE + 273.15);  // + (1/To)
-  thermistorTemperatureA = 1.0 / thermistorTemperatureA;           // Invert
+  thermistorTemperatureA = resistanceA / NOMINAL_RESISTANCE;      // (R/Ro)
+  thermistorTemperatureA = log(thermistorTemperatureA);           // ln(R/Ro)
+  thermistorTemperatureA /= B_COEFFICIENT;                        // 1/B * ln(R/Ro)
+  thermistorTemperatureA += 1.0 / (NOMINAL_TEMPERATURE + 273.15); // + (1/To)
+  thermistorTemperatureA = 1.0 / thermistorTemperatureA;          // Invert
   thermistorTemperatureA -= 273.15;
 
   // Read and calculate temperature for Thermistor B
   int adcValueB = analogRead(THERMISTOR_PIN_B);
   float voltageB = (adcValueB / ADC_RESOLUTION) * SUPPLY_VOLTAGE;
   float resistanceB = SERIES_RESISTOR * ((SUPPLY_VOLTAGE / voltageB) - 1);
-  float thermistorTemperatureB = resistanceB / NOMINAL_RESISTANCE; // (R/Ro)
-  thermistorTemperatureB = log(thermistorTemperatureB);            // ln(R/Ro)
-  thermistorTemperatureB /= B_COEFFICIENT;                         // 1/B * ln(R/Ro)
-  thermistorTemperatureB += 1.0 / (NOMINAL_TEMPERATURE + 273.15);  // + (1/To)
-  thermistorTemperatureB = 1.0 / thermistorTemperatureB;           // Invert
+  thermistorTemperatureB = resistanceB / NOMINAL_RESISTANCE;      // (R/Ro)
+  thermistorTemperatureB = log(thermistorTemperatureB);           // ln(R/Ro)
+  thermistorTemperatureB /= B_COEFFICIENT;                        // 1/B * ln(R/Ro)
+  thermistorTemperatureB += 1.0 / (NOMINAL_TEMPERATURE + 273.15); // + (1/To)
+  thermistorTemperatureB = 1.0 / thermistorTemperatureB;          // Invert
   thermistorTemperatureB -= 273.15;
 
   display.clear();
@@ -258,7 +265,6 @@ void loop()
     yield();
 
     // Get current time from WiFi network
-    char timestamp[20];
     // Generate a simple timestamp and dummy value
     snprintf(timestamp, sizeof(timestamp), "%lu", millis() / 1000);
 
@@ -366,6 +372,7 @@ bool handleWifi()
   // Start the server
   server.on("/", HTTP_GET, handleRoot);             // Handle root request
   server.on("/download", HTTP_GET, handleDownload); // Handle download request
+  server.on("/raw", HTTP_GET, handleGetValues);     // Handle getValues request
   yield();
   server.begin();
 
@@ -378,9 +385,19 @@ bool handleWifi()
 // Handle the root URL
 void handleRoot()
 {
-  String html = "<html><body><h1>Sunfactory Temperature Log:</h1>";
-  html += "<p><a href='/download'>Download CSV</a></p>";
-  html += "</body></html>";
+  String html = "<html><head><meta http-equiv='refresh' content='" + String(LOG_INTERVAL_MS) + "'></head>"
+                                                                                               "<body style='background-color:#ffcc00; text-align:center;font-family:Arial;'><h1>SUNFACTORY</h1>"
+                                                                                               "<table border='1' style='margin-left:auto; margin-right:auto;'>"
+                                                                                               "<tr><th>Timestamp</th><th>Temperature A</th><th>Temperature B</th><th>Lux</th></tr>";
+  if (timestamp == nullptr || strlen(timestamp) == 0)
+  {
+    html += "<tr><td>wait bro (:</td><td>" + String(thermistorTemperatureA) + " C</td><td>" + String(thermistorTemperatureB) + " C</td><td>" + String(lux) + " lm</td></tr>";
+  }
+  else
+  {
+    html += "<tr><td>" + String(timestamp) + " </td><td>" + String(thermistorTemperatureA) + " C</td><td>" + String(thermistorTemperatureB) + " C</td><td>" + String(lux) + " lm</td></tr>";
+  }
+  html += "</table><p><a href='/download'>Download CSV</a></p></body></html>";
   server.send(200, "text/html", html);
 }
 
@@ -397,4 +414,17 @@ void handleDownload()
   // Send the file content as a downloadable file
   server.streamFile(file, "text/csv");
   file.close();
+}
+
+// Handle the getValues URL
+void handleGetValues()
+{
+  String json = "{";
+  json += "\"timestamp\":\"" + String(timestamp) + "\",";
+  json += "\"temperatureA\":" + String((int)thermistorTemperatureA) + ",";
+  json += "\"temperatureB\":" + String((int)thermistorTemperatureB) + ",";
+  json += "\"lux\":" + String((int)lux);
+  json += "}";
+
+  server.send(200, "application/json", json);
 }

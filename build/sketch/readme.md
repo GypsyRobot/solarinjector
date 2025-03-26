@@ -23,8 +23,13 @@ Roadmap:
 - DONE - flash memory
 - DONE - wifi
 - DONE - hotspot
+- DONE - show current values on http server
+- DONE - api endpoint to see temperature
+- stop beep after pressing a button
 - clear flash manualy
+- certify that it handles flash overflow correctly
 - lora
 - dht
 - generic hardware modules
+- telegram real time monitoring maybe
 - refactor
