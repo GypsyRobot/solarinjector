@@ -25,9 +25,9 @@ Roadmap:
 - DONE - hotspot
 - DONE - show current values on http server
 - DONE - api endpoint to see temperature
-- stop beep after pressing a button
-- clear flash manualy
-- certify that it handles flash overflow correctly
+- DONE - clear flash manualy
+- DONE - certify that it handles flash overflow correctly
+- DONE - enable or disable beep via webserver
 - lora
 - dht
 - generic hardware modules

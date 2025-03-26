@@ -9,9 +9,9 @@
 // #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 
 #define LOG_INTERVAL_MS 60000 // 60000 milliseconds = 1 minute
-#define WIFI_TIMEOUT_MS 10000 // 10000 milliseconds = 10 seconds
 
 // For wifi connection
+#define WIFI_TIMEOUT_MS 10000 // 10000 milliseconds = 10 seconds
 
 #define WIFI_SSID "sunfactory"
 #define WIFI_PASS "sunfactory"
@@ -51,7 +51,12 @@ bool connected = false;
 float thermistorTemperatureA = 0;
 float thermistorTemperatureB = 0;
 float lux = 0;
+float fileSize = 0;
+int availableMemory = 99999;     // to make sure it's not 0
+float availablePercentage = 100; // start with 100 to make sure
 char timestamp[20];
+
+bool enableBeep = true;
 
 void setup()
 {
@@ -131,6 +136,20 @@ void loop()
   heltec_loop();
   yield();
 
+  if (!SPIFFS.exists(filename))
+  {
+    Serial.println("File does not exist, creating new file with headers");
+    display.println("log wiped!");
+    display.println("creating file");
+    File file = SPIFFS.open(filename, FILE_WRITE);
+    delay(1000);
+    if (file)
+    {
+      file.println("Timestamp, Temperature A, Temperature B, Lux"); // CSV headers
+      file.close();
+    }
+    delay(1000);
+  }
   // Button
   targetTemperature = targetTemperatures[targetIndex];
   yield();
@@ -231,7 +250,7 @@ void loop()
   }
 
   // print OK if temperature above target temperature
-  if (thermistorTemperatureA >= targetTemperature || thermistorTemperatureB >= targetTemperature)
+  if (enableBeep == true && (thermistorTemperatureA >= targetTemperature || thermistorTemperatureB >= targetTemperature))
   {
     display.setTextAlignment(TEXT_ALIGN_CENTER);
     display.setFont(ArialMT_Plain_24);
@@ -249,6 +268,20 @@ void loop()
     display.setFont(ArialMT_Plain_16);
     display.drawStringf(106, 32, buffer, "%.0f", lux);
     display.drawStringf(106, 46, buffer, "lm");
+    heltec_led(0);
+  }
+
+  // Indicate that the memory is almost full
+  if (availablePercentage < 20)
+  {
+    heltec_led(100);
+    display.setFont(ArialMT_Plain_10);
+    display.setTextAlignment(TEXT_ALIGN_LEFT);
+    display.drawStringf(3, 0, buffer, "BACKUP!");
+    display.drawStringf(63, 0, buffer, "%.0f%%", availablePercentage);
+  }
+  else
+  {
     heltec_led(0);
   }
 
@@ -297,20 +330,33 @@ void loop()
     try
     {
       file.printf("%s, %d, %d, %d,\n", timestamp, (int)thermistorTemperatureA, (int)thermistorTemperatureB, (int)lux);
+      fileSize = file.size();
     }
     catch (const std::exception &e)
     {
       Serial.print("Error writing to file: ");
       Serial.println(e.what());
     }
-
     file.close();
+
+    availableMemory = SPIFFS.totalBytes() - SPIFFS.usedBytes();
+    availablePercentage = (float)availableMemory / SPIFFS.totalBytes() * 100;
+    Serial.printf("File size: %d bytes\n", (int)fileSize);
+    Serial.printf("Available memory: %d bytes (%.2f%%)\n", availableMemory, availablePercentage);
+
     yield();
   }
   yield();
 
   server.handleClient(); // Handle client requests
   yield();
+
+  // wipe file if memory is less than 10% to keep system running
+  if (availablePercentage < 10)
+  {
+    SPIFFS.remove(filename);
+    fileSize = 0;
+  }
 
   heltec_delay(100);
 }
@@ -373,6 +419,9 @@ bool handleWifi()
   server.on("/", HTTP_GET, handleRoot);             // Handle root request
   server.on("/download", HTTP_GET, handleDownload); // Handle download request
   server.on("/raw", HTTP_GET, handleGetValues);     // Handle getValues request
+  server.on("/wipe", HTTP_GET, handleWipeFile);     // Handle wipeFile request
+  server.on("/enable-beep", HTTP_GET, handleEnableBeep);
+  server.on("/disable-beep", HTTP_GET, handleDisableBeep);
   yield();
   server.begin();
 
@@ -385,19 +434,33 @@ bool handleWifi()
 // Handle the root URL
 void handleRoot()
 {
-  String html = "<html><head><meta http-equiv='refresh' content='" + String(LOG_INTERVAL_MS) + "'></head>"
-                                                                                               "<body style='background-color:#ffcc00; text-align:center;font-family:Arial;'><h1>SUNFACTORY</h1>"
-                                                                                               "<table border='1' style='margin-left:auto; margin-right:auto;'>"
-                                                                                               "<tr><th>Timestamp</th><th>Temperature A</th><th>Temperature B</th><th>Lux</th></tr>";
+  String html = "<html><head><meta http-equiv='refresh' content='" + String(10) + "'></head>"
+                                                                                  "<body style='background-color:#ffcc00; text-align:center;font-family:Arial;'><h1>SUNFACTORY</h1>"
+                                                                                  "<table border='1' style='margin-left:auto; margin-right:auto; text-align:center;'>"
+                                                                                  "<tr><th>Timestamp</th><th>Temperature A</th><th>Temperature B</th><th>Lux</th></tr>";
   if (timestamp == nullptr || strlen(timestamp) == 0)
   {
-    html += "<tr><td>wait bro (:</td><td>" + String(thermistorTemperatureA) + " C</td><td>" + String(thermistorTemperatureB) + " C</td><td>" + String(lux) + " lm</td></tr>";
+    html += "<tr><td><a href='/'wait</a></td><td>" + String((int)thermistorTemperatureA) + " C</td><td>" + String((int)thermistorTemperatureB) + " C</td><td>" + String((int)lux) + " lm</td></tr>";
   }
   else
   {
-    html += "<tr><td>" + String(timestamp) + " </td><td>" + String(thermistorTemperatureA) + " C</td><td>" + String(thermistorTemperatureB) + " C</td><td>" + String(lux) + " lm</td></tr>";
+    html += "<tr><td>" + String(timestamp) + " </td><td>" + String((int)thermistorTemperatureA) + " C</td><td>" + String((int)thermistorTemperatureB) + " C</td><td>" + String((int)lux) + " lm</td></tr>";
   }
-  html += "</table><p><a href='/download'>Download CSV</a></p></body></html>";
+  html += "</table><p><a href='/download'>Download LOG</a></p>";
+  html += "<p>File size: " + String(fileSize) + " bytes</p>";
+  html += "<p>Available memory: " + String(availableMemory) + " bytes (" + String(availablePercentage, 2) + "%)</p>";
+  html += "<p>Beep " + String(enableBeep ? "Enabled" : "Disabled") + "</p>";
+  if (!enableBeep)
+  {
+    html += "<p><a href='/enable-beep'>Enable Beep</a></p>";
+  }
+  else
+  {
+    html += "<p><a href='/disable-beep'>Disable Beep</a></p>";
+  }
+  html += "<p style='text-align:right;'><a href='/wipe'>Wipe LOG</a></p>";
+  html += "</body></html>";
+
   server.send(200, "text/html", html);
 }
 
@@ -427,4 +490,37 @@ void handleGetValues()
   json += "}";
 
   server.send(200, "application/json", json);
+}
+
+void handleWipeFile()
+{
+  if (server.hasArg("confirm") && server.arg("confirm") == "yes")
+  {
+    SPIFFS.remove(filename);
+    fileSize = 0;
+    server.sendHeader("Location", "/");
+    server.send(303);
+  }
+  else
+  {
+    String html = "<html><body style='background-color:#ffcc00;'><h1>Confirm Wipe</h1>";
+    html += "<p>Are you sure you want to wipe the log file?</p>";
+    html += "<a href='/wipe?confirm=yes'>Yes</a> | <a href='/'>No</a>";
+    html += "</body></html>";
+    server.send(200, "text/html", html);
+  }
+}
+
+void handleEnableBeep()
+{
+  enableBeep = true;
+  server.sendHeader("Location", "/");
+  server.send(303);
+}
+
+void handleDisableBeep()
+{
+  enableBeep = false;
+  server.sendHeader("Location", "/");
+  server.send(303);
 }
