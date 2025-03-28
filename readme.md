@@ -27,8 +27,11 @@ Roadmap:
 - DONE - clear flash manualy
 - DONE - certify that it handles flash overflow correctly
 - DONE - enable or disable beep via webserver
-- lora
+- DONE - lora send and receive
+- lora ssid per module
+- lora replicate messages and save to database with sender id
 - dht
 - generic hardware modules
-- telegram real time monitoring maybe
+- fine tune lux measurements
+- maybe - telegram integration
 - refactor

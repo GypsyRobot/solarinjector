@@ -9,6 +9,41 @@
 
 // #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 
+// ###################### LORA ######################
+// Pause between transmited packets in seconds.
+// Set to zero to only transmit a packet when pressing the user button
+// Will not exceed 1% duty cycle, even if you set a lower value.
+
+
+// Frequency in MHz. Keep the decimal point to designate float.
+// Check your own rules and regulations to see what is legal where you are.
+
+// #define FREQUENCY           905.2       // for US
+
+// LoRa bandwidth. Keep the decimal point to designate float.
+// Allowed values are 7.8, 10.4, 15.6, 20.8, 31.25, 41.7, 62.5, 125.0, 250.0 and 500.0 kHz.
+
+
+// Number from 5 to 12. Higher means slower but higher "processor gain",
+// meaning (in nutshell) longer range and more robust against interference.
+
+
+// Transmit power in dBm. 0 dBm = 1 mW, enough for tabletop-testing. This value can be
+// set anywhere between -9 dBm (0.125 mW) to 22 dBm (158 mW). Note that the maximum ERP
+// (which is what your antenna maximally radiates) on the EU ISM band is 25 mW, and that
+// transmissting without an antenna can damage your hardware.
+
+
+String txdata;
+String rxdata;
+volatile bool rxFlag = false;
+long counter = 0;
+uint64_t last_tx = 0;
+uint64_t tx_time;
+uint64_t minimum_pause;
+
+// ###################################################
+
 
 
 // For wifi connection
@@ -29,7 +64,7 @@ const long gmtOffset_sec = 0; // Adjust this according to your timezone
 const int daylightOffset_sec = 0; // Adjust this according to your day light saving time
 
 // Constants for the Thermistors
-# 40 "/home/everton/sunfactory/sunfactory.ino"
+# 75 "/home/everton/sunfactory/sunfactory.ino"
 // Constants from the LDR datasheet
 
 
@@ -58,6 +93,25 @@ unsigned long lastSaveTime = 0;
 void setup()
 {
   heltec_setup();
+
+  // ###################### LORA ######################
+  both.println("Radio init");
+  _radiolib_status = radio.begin(); Serial0.print("[RadioLib] "); Serial0.print("radio.begin()"); Serial0.print(" returned "); Serial0.print(_radiolib_status); Serial0.print(" ("); Serial0.print(radiolib_result_string(_radiolib_status)); Serial0.println(")");; if (_radiolib_status != (0)) { Serial0.println("[RadioLib] Halted"); while (true) { heltec_delay(10); } };
+  // Set the callback function for received packets
+  radio.setDio1Action(rx);
+  // Set radio parameters
+  both.printf("Frequency: %.2f MHz\n", 866.3 /* for Europe*/);
+  _radiolib_status = radio.setFrequency(866.3 /* for Europe*/); Serial0.print("[RadioLib] "); Serial0.print("radio.setFrequency(866.3 /* for Europe*/)"); Serial0.print(" returned "); Serial0.print(_radiolib_status); Serial0.print(" ("); Serial0.print(radiolib_result_string(_radiolib_status)); Serial0.println(")");; if (_radiolib_status != (0)) { Serial0.println("[RadioLib] Halted"); while (true) { heltec_delay(10); } };
+  both.printf("Bandwidth: %.1f kHz\n", 250.0);
+  _radiolib_status = radio.setBandwidth(250.0); Serial0.print("[RadioLib] "); Serial0.print("radio.setBandwidth(250.0)"); Serial0.print(" returned "); Serial0.print(_radiolib_status); Serial0.print(" ("); Serial0.print(radiolib_result_string(_radiolib_status)); Serial0.println(")");; if (_radiolib_status != (0)) { Serial0.println("[RadioLib] Halted"); while (true) { heltec_delay(10); } };
+  both.printf("Spreading Factor: %i\n", 9);
+  _radiolib_status = radio.setSpreadingFactor(9); Serial0.print("[RadioLib] "); Serial0.print("radio.setSpreadingFactor(9)"); Serial0.print(" returned "); Serial0.print(_radiolib_status); Serial0.print(" ("); Serial0.print(radiolib_result_string(_radiolib_status)); Serial0.println(")");; if (_radiolib_status != (0)) { Serial0.println("[RadioLib] Halted"); while (true) { heltec_delay(10); } };
+  both.printf("TX power: %i dBm\n", 14);
+  _radiolib_status = radio.setOutputPower(14); Serial0.print("[RadioLib] "); Serial0.print("radio.setOutputPower(14)"); Serial0.print(" returned "); Serial0.print(_radiolib_status); Serial0.print(" ("); Serial0.print(radiolib_result_string(_radiolib_status)); Serial0.println(")");; if (_radiolib_status != (0)) { Serial0.println("[RadioLib] Halted"); while (true) { heltec_delay(10); } };
+  // Start receiving
+  _radiolib_status = radio.startReceive(0xFFFFFF /*  23    0                        infinite (Rx continuous mode)*/); Serial0.print("[RadioLib] "); Serial0.print("radio.startReceive(0xFFFFFF /*  23    0                        infinite (Rx continuous mode)*/)"); Serial0.print(" returned "); Serial0.print(_radiolib_status); Serial0.print(" ("); Serial0.print(radiolib_result_string(_radiolib_status)); Serial0.println(")");; if (_radiolib_status != (0)) { Serial0.println("[RadioLib] Halted"); while (true) { heltec_delay(10); } };
+
+  // ###################################################
 
   display.resetOrientation();
 
@@ -92,21 +146,6 @@ void setup()
   // Display
   display.println("Display works");
 
-  // Radio
-  display.print("Radio ");
-  int state = radio.begin();
-  if (state == (0))
-  {
-    display.println("works");
-  }
-  else
-  {
-    display.printf("fail, code: %i\n", state);
-  }
-
-  _radiolib_status = radio.setFrequency(866.3); Serial0.print("[RadioLib] "); Serial0.print("radio.setFrequency(866.3)"); Serial0.print(" returned "); Serial0.print(_radiolib_status); Serial0.print(" ("); Serial0.print(radiolib_result_string(_radiolib_status)); Serial0.println(")");; if (_radiolib_status != (0)) { Serial0.println("[RadioLib] Halted"); while (true) { heltec_delay(10); } };
-  heltec_delay(3000);
-  yield();
   // Battery
   float vbat = heltec_vbat();
   display.printf("Vbat: %.2fV (%d%%)\n", vbat, heltec_battery_percent(vbat));
@@ -186,7 +225,7 @@ void loop()
   float ldrResistance = (3.3 /* ESP8266 supply voltage*/ / ldrVoltage - 1) * 10000.0 /* 10k resistor value (in ohms)*/;
 
   // Convert Resistance to Lux using the gamma formula
-  lux = 10.0 * pow((8000.0 /* Resistance at 10 Lux (8kΩ - lower bound)*/ / ldrResistance), (1.0 / 0.7 /* Gamma value from datasheet*/));
+  lux = pow((8000.0 /* Resistance at 10 Lux (8kΩ - lower bound)*/ / ldrResistance), (1.0 / 0.7 /* Gamma value from datasheet*/));
   yield();
   // Read and calculate temperature for Thermistor A
   int adcValueA = analogRead(7 /* Analog pin where the voltage divider is connected for Thermistor A*/);
@@ -288,7 +327,7 @@ void loop()
   unsigned long currentTime = millis();
   yield();
 
-  if ((currentTime - lastSaveTime >= 60000 /* 60000 milliseconds = 1 minute*/) || lastSaveTime == 0) // 60000 milliseconds = 1 minute
+  if ((currentTime - lastSaveTime >= 1000 /* 60000 milliseconds = 1 minute*/) || lastSaveTime == 0) // 60000 milliseconds = 1 minute
   {
     lastSaveTime = currentTime;
     yield();
@@ -325,8 +364,13 @@ void loop()
 
     try
     {
+      // Write data to file
       file.printf("%s, %d, %d, %d,\n", timestamp, (int)thermistorTemperatureA, (int)thermistorTemperatureB, (int)lux);
       fileSize = file.size();
+      // Send data via Lora
+      txdata = String(timestamp) + "," + String((int)thermistorTemperatureA) + "," + String((int)thermistorTemperatureB) + "," + String((int)lux);
+
+      handleLoraTx();
     }
     catch (const std::exception &e)
     {
@@ -353,6 +397,8 @@ void loop()
     SPIFFS.remove(filename);
     fileSize = 0;
   }
+
+  handleLoraRx();
 
   heltec_delay(100);
 }
@@ -519,4 +565,53 @@ void handleDisableBeep()
   enableBeep = false;
   server.sendHeader("Location", "/");
   server.send(303);
+}
+
+void handleLoraTx()
+{
+  radio.transmit(txdata.c_str());
+  radio.clearDio1Action();
+  heltec_led(50); // 50% brightness is plenty for this LED
+  tx_time = millis();
+  _radiolib_status = radio.transmit(String(counter++).c_str()); Serial0.print("[RadioLib] "); Serial0.print("radio.transmit(String(counter++).c_str())"); Serial0.print(" returned "); Serial0.print(_radiolib_status); Serial0.print(" ("); Serial0.print(radiolib_result_string(_radiolib_status)); Serial0.println(")");;
+  tx_time = millis() - tx_time;
+  heltec_led(0);
+  if (_radiolib_status == (0))
+  {
+    yield();
+    // both.printf("OK (%i ms)\n", (int)tx_time);
+  }
+  else
+  {
+    both.printf("fail (%i)\n", _radiolib_status);
+  }
+  // Maximum 1% duty cycle
+  minimum_pause = tx_time * 100;
+  last_tx = millis();
+  radio.setDio1Action(rx);
+  _radiolib_status = radio.startReceive(0xFFFFFF /*  23    0                        infinite (Rx continuous mode)*/); Serial0.print("[RadioLib] "); Serial0.print("radio.startReceive(0xFFFFFF /*  23    0                        infinite (Rx continuous mode)*/)"); Serial0.print(" returned "); Serial0.print(_radiolib_status); Serial0.print(" ("); Serial0.print(radiolib_result_string(_radiolib_status)); Serial0.println(")");; if (_radiolib_status != (0)) { Serial0.println("[RadioLib] Halted"); while (true) { heltec_delay(10); } };
+}
+
+void handleLoraRx()
+{
+  // If a packet was received, display it and the RSSI and SNR
+  if (rxFlag)
+  {
+    rxFlag = false;
+    radio.readData(rxdata);
+    if (_radiolib_status == (0))
+    {
+      yield();
+      // both.printf("RX [%s]\n", rxdata.c_str());
+      // both.printf("  RSSI: %.2f dBm\n", radio.getRSSI());
+      // both.printf("  SNR: %.2f dB\n", radio.getSNR());
+    }
+    _radiolib_status = radio.startReceive(0xFFFFFF /*  23    0                        infinite (Rx continuous mode)*/); Serial0.print("[RadioLib] "); Serial0.print("radio.startReceive(0xFFFFFF /*  23    0                        infinite (Rx continuous mode)*/)"); Serial0.print(" returned "); Serial0.print(_radiolib_status); Serial0.print(" ("); Serial0.print(radiolib_result_string(_radiolib_status)); Serial0.println(")");; if (_radiolib_status != (0)) { Serial0.println("[RadioLib] Halted"); while (true) { heltec_delay(10); } };
+  }
+}
+
+// Can't do Serial or display things here, takes too much time for the interrupt
+void rx()
+{
+  rxFlag = true;
 }

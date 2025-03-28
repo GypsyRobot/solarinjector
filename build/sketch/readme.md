@@ -28,6 +28,7 @@ Roadmap:
 - DONE - clear flash manualy
 - DONE - certify that it handles flash overflow correctly
 - DONE - enable or disable beep via webserver
+- fine tune lux measurements
 - lora
 - dht
 - generic hardware modules
